@@ -20,5 +20,19 @@ public class Account {
 		this.balance = balance;
 		transactions = 0;
 	}
-	
-}
+
+	@Override
+	public int hashCode() {
+		return Integer.hashCode(id);
+	}
+
+	@Override
+	public String toString() {
+		return "ID: " + id + ";   balance: " + balance + ";   transactions: " + transactions;
+	}
+
+	public synchronized void adjustAccount(int amount) {
+		balance += amount;
+		transactions++;
+	}
+ }

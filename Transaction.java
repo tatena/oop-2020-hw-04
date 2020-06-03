@@ -18,4 +18,10 @@ public class Transaction {
 	public String toString() {
 		return("from:" + from + " to:" + to + " amt:" + amount);
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		Transaction trans = (Transaction)obj;
+		return this.from == trans.from && this.to == trans.to && this.amount == trans.amount;
+	}
 }

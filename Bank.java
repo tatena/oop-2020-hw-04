@@ -7,9 +7,49 @@
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
 
-public class Bank {
-	public static final int ACCOUNTS = 20;	 // number of accounts
+public class Bank  {
+
+	private final Transaction nullTrans = new Transaction(-1,0,0);
+	public static final int NUM_ACCOUNTS = 20;	 // number of accounts
+	public static final int INITIAL_BALANCE = 1000;	 // initial balance of accounts
+
+	private HashMap<Integer, Account> accounts;
+	private Buffer transactions;
+	private CountDownLatch finishLatch;
+
+	class Worker {
+
+		public void start() {
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					while(true) {
+						Transaction task = transactions.take();
+
+						if(task.equals(nullTrans)) {
+							finishLatch.countDown();
+							break;
+						}
+						accounts.get(task.from).adjustAccount(-task.amount);
+						accounts.get(task.to).adjustAccount(task.amount);
+					}
+				}
+			}).start();
+
+		}
+	}
+
+
+	public Bank(int numWorkers) {
+		accounts = new HashMap();
+		transactions = new Buffer();
+		finishLatch = new CountDownLatch(numWorkers);
+		for (int i = 0; i < NUM_ACCOUNTS; i++) {
+			accounts.put(i, new Account(this, i, INITIAL_BALANCE));
+		}
+	}
 	
 
 	
@@ -31,13 +71,11 @@ public class Bank {
 				
 				tokenizer.nextToken();
 				int to = (int)tokenizer.nval;
-				
+
 				tokenizer.nextToken();
 				int amount = (int)tokenizer.nval;
 				
-				// Use the from/to/amount
-				
-				// YOUR CODE HERE
+				transactions.put(new Transaction(from, to, amount));
 			}
 		}
 		catch (Exception e) {
@@ -46,6 +84,7 @@ public class Bank {
 		}
 	}
 
+
 	/*
 	 Processes one file of transaction data
 	 -fork off workers
@@ -53,10 +92,34 @@ public class Bank {
 	 -wait for the workers to finish
 	*/
 	public void processFile(String file, int numWorkers) {
+		for (int i=0; i<numWorkers; i++) {
+			Worker newThread = new Worker();
+			newThread.start();
+		}
+
+		readFile(file);
+
+		for (int i=0; i<numWorkers; i++) {
+			transactions.put(nullTrans);
+		}
+
+		try {
+			finishLatch.await();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		printResults();
+
 	}
 
-	
-	
+	private void printResults() {
+		for (Account curr : accounts.values()) {
+			System.out.println(curr.toString());
+		}
+	}
+
+
 	/*
 	 Looks at commandline args and calls Bank processing.
 	*/
@@ -73,8 +136,8 @@ public class Bank {
 		if (args.length >= 2) {
 			numWorkers = Integer.parseInt(args[1]);
 		}
-		
-		// YOUR CODE HERE
+		Bank bank = new Bank(numWorkers);
+		bank.processFile(file, numWorkers);
 	}
 }
 
