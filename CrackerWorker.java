@@ -4,7 +4,9 @@ import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 
 public class CrackerWorker implements Runnable {
-    Queue<String> processingWords;
+  //  Queue<String> processingWords;4
+    int startIndex;
+    int endIndex;
     int maxLength;
     String target;
     CountDownLatch finishLatch;
@@ -13,27 +15,28 @@ public class CrackerWorker implements Runnable {
         maxLength = max;
         target = targ;
         this.finishLatch = finishLatch;
-        processingWords = new LinkedList<>();
-        for (int i = start; i <= end; i++) {
-            processingWords.offer("" + Cracker.CHARS[i]);
-        }
+        startIndex = start;
+        endIndex = end;
     }
 
     @Override
     public void run() {
-        while (processingWords.peek() != null) {
-            String curr = processingWords.poll();
-        //    System.out.println(curr);
-            if (Cracker.generateMode(curr).equals(target)) {
-                System.out.println(curr);
-            }
-
-            if (curr.length() < maxLength) {
-                for (int i=0; i<Cracker.CHARS.length; i++) {
-                    processingWords.offer(curr + Cracker.CHARS[i]);
-                }
-            }
+        for (int i = startIndex; i <= endIndex; i++) {
+            recSearch(Cracker.CHARS[i] + "");
         }
         finishLatch.countDown();
+    }
+
+    private void recSearch(String soFar) {
+        if (soFar.length() > maxLength)
+            return;
+        if (Cracker.generateMode(soFar).equals(target)) {
+            System.out.println(soFar);
+        }
+
+        for (int i = 0; i < Cracker.CHARS.length; i++) {
+            recSearch(soFar + Cracker.CHARS[i]);
+        }
+
     }
 }
