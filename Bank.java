@@ -20,7 +20,6 @@ public class Bank  {
 	private CountDownLatch finishLatch;
 
 	class Worker {
-
 		public void start() {
 			new Thread(new Runnable() {
 				@Override
@@ -37,7 +36,6 @@ public class Bank  {
 					}
 				}
 			}).start();
-
 		}
 	}
 
@@ -57,8 +55,7 @@ public class Bank  {
 	 Reads transaction data (from/to/amt) from a file for processing.
 	 (provided code)
 	 */
-	public void readFile(String file) {
-			try {
+	public void readFile(String file) throws IOException {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 			
 			// Use stream tokenizer to get successive words from file
@@ -77,11 +74,7 @@ public class Bank  {
 				
 				transactions.put(new Transaction(from, to, amount));
 			}
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			System.exit(1);
-		}
+
 	}
 
 
@@ -91,7 +84,7 @@ public class Bank  {
 	 -read file into the buffer
 	 -wait for the workers to finish
 	*/
-	public void processFile(String file, int numWorkers) {
+	public void processFile(String file, int numWorkers) throws IOException, InterruptedException {
 		for (int i=0; i<numWorkers; i++) {
 			Worker newThread = new Worker();
 			newThread.start();
@@ -103,11 +96,7 @@ public class Bank  {
 			transactions.put(nullTrans);
 		}
 
-		try {
-			finishLatch.await();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		finishLatch.await();
 
 		printResults();
 
@@ -123,11 +112,11 @@ public class Bank  {
 	/*
 	 Looks at commandline args and calls Bank processing.
 	*/
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		// deal with command-lines args
 		if (args.length == 0) {
 			System.out.println("Args: transaction-file [num-workers [limit]]");
-			System.exit(1);
+			return;
 		}
 		
 		String file = args[0];
@@ -138,6 +127,10 @@ public class Bank  {
 		}
 		Bank bank = new Bank(numWorkers);
 		bank.processFile(file, numWorkers);
+	}
+
+	public Map<Integer,Account> getBalances() {
+		return accounts;
 	}
 }
 

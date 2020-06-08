@@ -1,4 +1,5 @@
 import javax.print.DocFlavor;
+import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
@@ -30,9 +31,11 @@ public class CrackerWorker implements Runnable {
     private void recSearch(String soFar) {
         if (soFar.length() > maxLength)
             return;
-        if (Cracker.generateMode(soFar).equals(target)) {
-            System.out.println(soFar);
-        }
+        try {
+            if (Cracker.generateMode(soFar).equals(target)) {
+                System.out.println(soFar);
+            }
+        } catch (NoSuchAlgorithmException e) { }
 
         for (int i = 0; i < Cracker.CHARS.length; i++) {
             recSearch(soFar + Cracker.CHARS[i]);

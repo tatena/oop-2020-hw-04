@@ -35,4 +35,12 @@ public class Account {
 		balance += amount;
 		transactions++;
 	}
+
+	public int getBalance() {
+		return balance;
+	}
+
+	public  int getTransactions() {
+		return  transactions;
+	}
  }

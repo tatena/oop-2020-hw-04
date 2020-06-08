@@ -25,24 +25,8 @@ public class Cracker {
 		}
 		return buff.toString();
 	}
-	
-	/*
-	 Given a string of hex byte values such as "24a26f", creates
-	 a byte[] array of those values, one byte value -128..127
-	 for each 2 chars.
-	 (provided code)
-	*/
-	public static byte[] hexToArray(String hex) {
-		byte[] result = new byte[hex.length()/2];
-		for (int i=0; i<hex.length(); i+=2) {
-			result[i/2] = (byte) Integer.parseInt(hex.substring(i, i+2), 16);
-		}
-		return result;
-	}
-	
-	
-	
-	public static void main(String[] args) {
+
+	public static void main(String[] args) throws NoSuchAlgorithmException {
 		if (args.length == 1) {
 			String password = args[0];
 			System.out.println(generateMode(password));
@@ -51,21 +35,20 @@ public class Cracker {
 
 		if (args.length < 2) {
 			System.out.println("Args: target length [workers]");
-			System.exit(1);
+			return;
 		}
 
-		// args: targ len [num]
 		String targ = args[0];
 		int len = Integer.parseInt(args[1]);
 		int num = 1;
-		if (args.length>2) {
+		if (args.length > 2) {
 			num = Integer.parseInt(args[2]);
 		}
 
 		crackerMode(targ, len, num);
 		// a! 34800e15707fae815d7c90d49de44aca97e2d759
 		// xyz 66b27417d37e024c46526c2f6d358a754fc552f3
-		
+
 	}
 
 	private static void crackerMode(String targ, int len, int num) {
@@ -79,21 +62,14 @@ public class Cracker {
 		try {
 			toWait.await();
 			System.out.println("DONE");
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		} catch (InterruptedException e) { }
 	}
 
-	public static String generateMode(String password) {
-		try {
-			MessageDigest hasher = MessageDigest.getInstance("SHA");
-			hasher.update(password.getBytes());
-			byte [] hashBytes = hasher.digest();
-			String res = hexToString(hashBytes);
-			return res;
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-			return "";
-		}
+	public static String generateMode(String password) throws NoSuchAlgorithmException {
+		MessageDigest hasher = MessageDigest.getInstance("SHA");
+		hasher.update(password.getBytes());
+		byte [] hashBytes = hasher.digest();
+		String res = hexToString(hashBytes);
+		return res;
 	}
 }
